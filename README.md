@@ -21,7 +21,7 @@ var option = {
 				waveAnimation:false
 		}],
 		shape: 'roundRect',
-		color: [<span style="color:red">{"red":[0.8], "yellow":[0.6,0.8], "green":[0.4,0.6]}</span>, '#0f0'],
+		color: [**{"red":[0.8], "yellow":[0.6,0.8], "green":[0.4,0.6]}**, '#0f0'],
 		radius: '60%',
 		label: {
 			normal: {
@@ -42,7 +42,7 @@ var option = {
 			borderColor: 'blue',
 		},
 		amplitude: 5,
-		<span style="color:red">textAnimation: true</span>
+		**textAnimation: true**
 	}]
 };
 ```
