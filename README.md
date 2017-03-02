@@ -1,6 +1,53 @@
-# new feature
+# The New Feature
 
 ![Energy Ball](http://g.recordit.co/XKXD1X3QvR.gif)
+
+### And the option
+
+To create a Liquid Fill Chart, you need to have a series with type of `'liquidFill'`. A basic option may be:
+
+```js
+var option = {
+    series: [{
+		type: 'liquidFill',
+		data: [0.8 , {
+				value: 0.3,
+				itemStyle: {
+					normal: {
+						color: 'gray',
+						opacity: 0.2,
+						borderWidth:2
+					}
+				},
+				amplitude:0,
+				waveAnimation:false
+		}],
+		shape: 'roundRect',
+		color: [<span style="color:red">{"red":[0.8], "yellow":[0.6,0.8], "green":[0.4,0.6]}</span>, '#0f0'],
+		radius: '60%',
+		label: {
+			normal: {
+				formatter: function(param){ 
+					return (param.value * 100).toFixed(0) + '%' 
+				},
+				textStyle: {
+					fontSize: 30,
+					fontFamily: 'Lobster Two'
+				}
+			}
+		},
+		outline: {
+			show: false
+		},
+		backgroundStyle: {
+			borderWidth: 2,
+			borderColor: 'blue',
+		},
+		amplitude: 5,
+		<span style="color:red">textAnimation: true</span>
+	}]
+};
+```
 
 # ECharts Liquid Fill Chart
 
@@ -25,7 +72,7 @@ npm install echarts-liquidfill
 
 ## Download from GitHub
 
-You may download the lastest ECharts files on [ECharts official site](http://echarts.baidu.com/download.html) and download this plugin in [dist directory](https://github.com/ecomfe/echarts-liquidfill/tree/master/dist). Note that if you need tooltip for Liquid Fill Chart, you need the complete ECharts version. Otherwise, simple version will do.
+You may download the lastest ECharts files on [ECharts official site](http://echarts.baidu.com/download.html) and download this plugin in [dist directory](https://github.com/zssty2010/echarts-liquidfill/tree/gh-pages/dist). Note that if you need tooltip for Liquid Fill Chart, you need the complete ECharts version. Otherwise, simple version will do.
 
 
 
