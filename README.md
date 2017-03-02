@@ -4,8 +4,6 @@
 
 ### And the option
 
-To create a Liquid Fill Chart, you need to have a series with type of `'liquidFill'`. A basic option may be:
-
 ```js
 var option = {
     series: [{
