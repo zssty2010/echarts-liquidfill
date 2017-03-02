@@ -1,3 +1,7 @@
+# new feature
+
+![Energy Ball](http://g.recordit.co/XKXD1X3QvR.gif)
+
 # ECharts Liquid Fill Chart
 
 Liquid Fill Chart plugin for [ECharts](https://github.com/ecomfe/echarts), which is usually used to represent data in percentage.
