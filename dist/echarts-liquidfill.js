@@ -840,6 +840,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // each data item for a wave
 	        var oldData = this._data;
 	        var waves = [];
+			var animationDuration;
 	        data.diff(oldData)
 	            .add(function (idx) {
 	                var wave = getWave(idx, false);
@@ -858,6 +859,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                group.add(wave);
 	                data.setItemGraphicEl(idx, wave);
 	                waves.push(wave);
+					animationDuration = seriesModel.getShallow('animationDuration');
 	            })
 	            .update(function (newIdx, oldIdx) {
 	                var waveElement = oldData.getItemGraphicEl(oldIdx);
@@ -876,6 +878,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                group.add(waveElement);
 	                data.setItemGraphicEl(newIdx, waveElement);
 	                waves.push(waveElement);
+					animationDuration = seriesModel.getShallow('animationDurationUpdate');
 	            })
 	            .remove(function (idx) {
 	                var wave = oldData.getItemGraphicEl(idx);
@@ -1194,7 +1197,7 @@ return /******/ (function(modules) { // webpackBootstrap
 								.animate('style', false)
 								.when(0, {
 									val: oldData ? oldData.get('value', 0): 0
-								}).when(1000, {
+								}).when(animationDuration, {
 									val: data.get('value', 0)
 								}).start();
 					}
