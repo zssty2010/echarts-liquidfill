@@ -31,6 +31,7 @@ echarts.extendSeriesModel({
         shape: 'circle',
 
         waveAnimation: true,
+        textAnimation: false,
         animationEasing: 'linear',
         animationEasingUpdate: 'linear',
         animationDuration: 2000,

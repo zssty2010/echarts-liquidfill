@@ -1,6 +1,7 @@
 var echarts = require('echarts/lib/echarts');
 var numberUtil = echarts.number;
 var symbolUtil = require('echarts/lib/util/symbol');
+var zrUtil = require('echarts/node_modules/zrender/lib/core/util');
 var parsePercent = numberUtil.parsePercent;
 
 var LiquidLayout = require('./liquidFillLayout');
@@ -216,7 +217,23 @@ echarts.extendChartView({
             phase = oldWave ? oldWave.shape.phase
                 : (phase === 'auto' ? idx * Math.PI / 4 : phase);
             var normalStyle = itemStyleModel.getModel('normal').getItemStyle();
-            normalStyle.fill = data.getItemVisual(idx, 'color');
+			
+            //+ ranges of each item color
+			var rangeColor = data.getItemVisual(idx, 'color');
+			
+			var color_seted = false;
+			if (rangeColor instanceof Object){
+				for(var color in rangeColor){
+					var color_range = rangeColor[color];
+					if( color_range.length > 0 && (value >= color_range[0]) && (color_range.length > 1 ? value < color_range[1] : true)){
+						normalStyle.fill = color;
+						color_seted = true;
+						break;
+					}
+				}
+			}
+			if(!color_seted)
+				normalStyle.fill = zrUtil.isString(rangeColor) ? rangeColor : "black";
 
             var x = radius * 2;
             var wave = new LiquidLayout({
@@ -370,6 +387,41 @@ echarts.extendChartView({
             wavePath.setClipPath(boundingCircle);
             insideTextRect.setClipPath(wavePath);
 
+			//+ animat of label text (use the first data as param)
+			if(itemModel.get('textAnimation')){
+				function formatted(val) {
+					var formatter = labelModel.get('formatter');
+					var defaultVal = (val * 100);
+					var defaultLabel = data.getName(0) || seriesModel.name;
+					if (!isNaN(defaultVal)) {
+						defaultLabel = defaultVal.toFixed(0) + '%';
+					}
+					console.log(val);
+					return formatter == null ? defaultLabel : formatter({"value":val});
+				}
+				
+				function textAnimate(textRect){
+					Object.defineProperty(textRect.style,"val", {
+						set : function(v){
+								val = v;
+								this.text = formatted(v);
+						},
+						get :function(){
+							return val;
+						}
+					});
+					textRect.style.val = data.get('value', 0);
+					textRect
+							.animate('style', false)
+							.when(0, {
+								val: oldData ? oldData.get('value', 0): 0
+							}).when(1000, {
+								val: data.get('value', 0)
+							}).start();
+				}
+				textAnimate(insideTextRect);
+				textAnimate(outsideTextRect);
+			}
             return group;
         }
     }

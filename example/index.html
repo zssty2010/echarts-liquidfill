@@ -89,6 +89,7 @@
             <div class="chart"></div>
             <div class="chart"></div>
             <div class="chart"></div>
+            <div class="chart"></div>
         </div>
         <div id="view-more">
             <a href="http://gallery.echartsjs.com/explore.html?u=bd-4013131402&type=work#tags=liquidFill">More Examples</a>
@@ -304,6 +305,46 @@
                     },
                     shape: 'rect'
                 }]
+            },{
+                series: [{
+                    type: 'liquidFill',
+                    data: [0.8 , {
+							value: 0.3,
+							itemStyle: {
+								normal: {
+									color: 'gray',
+									opacity: 0.2,
+									borderWidth:2
+								}
+							},
+							amplitude:0,
+							waveAnimation:false
+					}],
+					shape: 'roundRect',
+					color: [{"red":[0.8], "yellow":[0.6,0.8], "green":[0.4,0.6]}, '#0f0'],
+                    radius: '60%',
+                    label: {
+                        normal: {
+                            formatter: function(param){ 
+								return (param.value * 100).toFixed(0) + '%' 
+							},
+                            textStyle: {
+                                fontSize: 30,
+                                fontFamily: 'Lobster Two'
+                            }
+                        }
+                    },
+					outline: {
+						show: false
+					},
+					backgroundStyle: {
+						borderWidth: 2,
+						borderColor: 'blue',
+					},
+					amplitude: 5,
+					//waveAnimation: false
+					textAnimation: true
+                }]
             }];
 
             var charts = [];
@@ -328,6 +369,18 @@
                         data: data
                     }]
                 });
+				update2();
+            }
+			
+			function update2() {
+				var powerBall = charts[13];
+				var option = powerBall.getOption();
+				
+				for (var i = 0; i < 2; ++i) {
+                    option.series[0].data[0] = Math.floor(1 * (Math.random() * 0.5 + 0.5)
+                        * 100) / 100;
+                }
+                powerBall.setOption(option);
             }
         </script>
     </body>

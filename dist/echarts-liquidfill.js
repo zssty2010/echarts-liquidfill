@@ -117,6 +117,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        shape: 'circle',
 
 	        waveAnimation: true,
+	        textAnimation: false,
 	        animationEasing: 'linear',
 	        animationEasingUpdate: 'linear',
 	        animationDuration: 2000,
@@ -779,6 +780,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var echarts = __webpack_require__(2);
 	var numberUtil = echarts.number;
 	var symbolUtil = __webpack_require__(7);
+	var zrUtil = __webpack_require__(5);
 	var parsePercent = numberUtil.parsePercent;
 
 	var LiquidLayout = __webpack_require__(63);
@@ -809,8 +811,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var outlineDistance = 0;
 	        var outlineBorderWidth = 0;
 	        var showOutline = seriesModel.get('outline.show');
-
-	        var waveClips = [];
 
 	        if (showOutline) {
 	            outlineDistance = seriesModel.get('outline.borderDistance');
@@ -996,7 +996,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	            phase = oldWave ? oldWave.shape.phase
 	                : (phase === 'auto' ? idx * Math.PI / 4 : phase);
 	            var normalStyle = itemStyleModel.getModel('normal').getItemStyle();
-	            normalStyle.fill = data.getItemVisual(idx, 'color');
+				
+	            //+ ranges of each item color
+				var rangeColor = data.getItemVisual(idx, 'color');
+				
+				var color_seted = false;
+				if (rangeColor instanceof Object){
+					for(var color in rangeColor){
+						var color_range = rangeColor[color];
+						if( color_range.length > 0 && (value >= color_range[0]) && (color_range.length > 1 ? value < color_range[1] : true)){
+							normalStyle.fill = color;
+							color_seted = true;
+							break;
+						}
+					}
+				}
+				if(!color_seted)
+					normalStyle.fill = zrUtil.isString(rangeColor) ? rangeColor : "black";
 
 	            var x = radius * 2;
 	            var wave = new LiquidLayout({
@@ -1022,7 +1038,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            // clip out the part outside the circle
 	            var clip = getPath(radius, true);
 	            wave.setClipPath(clip);
-	            waveClips.push(clip);
 
 	            return wave;
 	        }
@@ -1086,11 +1101,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        if (wavePath) {
 	                            wavePath.dirty(true);
 	                        }
-	                        // for (var i = 0; i < waveClips.length; ++i) {
-	                        //     if (waveClips[i]) {
-	                        //         waveClips[i].dirty(true);
-	                        //     }
-	                        // }
 	                    })
 	                    .start();
 	            }
@@ -1156,6 +1166,41 @@ return /******/ (function(modules) { // webpackBootstrap
 	            wavePath.setClipPath(boundingCircle);
 	            insideTextRect.setClipPath(wavePath);
 
+				//+ animat of label text (use the first data as param)
+				if(itemModel.get('textAnimation')){
+					function formatted(val) {
+						var formatter = labelModel.get('formatter');
+						var defaultVal = (val * 100);
+						var defaultLabel = data.getName(0) || seriesModel.name;
+						if (!isNaN(defaultVal)) {
+							defaultLabel = defaultVal.toFixed(0) + '%';
+						}
+						console.log(val);
+						return formatter == null ? defaultLabel : formatter({"value":val});
+					}
+					
+					function textAnimate(textRect){
+						Object.defineProperty(textRect.style,"val", {
+							set : function(v){
+									val = v;
+									this.text = formatted(v);
+							},
+							get :function(){
+								return val;
+							}
+						});
+						textRect.style.val = data.get('value', 0);
+						textRect
+								.animate('style', false)
+								.when(0, {
+									val: oldData ? oldData.get('value', 0): 0
+								}).when(1000, {
+									val: data.get('value', 0)
+								}).start();
+					}
+					textAnimate(insideTextRect);
+					textAnimate(outsideTextRect);
+				}
 	            return group;
 	        }
 	    }
@@ -1919,12 +1964,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    graphic.setText = function (textStyle, labelModel, color) {
 	        var labelPosition = labelModel.getShallow('position') || 'inside';
+	        var labelOffset = labelModel.getShallow('offset');
 	        var labelColor = labelPosition.indexOf('inside') >= 0 ? 'white' : color;
 	        var textStyleModel = labelModel.getModel('textStyle');
 	        zrUtil.extend(textStyle, {
 	            textDistance: labelModel.getShallow('distance') || 5,
 	            textFont: textStyleModel.getFont(),
 	            textPosition: labelPosition,
+	            textOffset: labelOffset,
 	            textFill: textStyleModel.getTextColor() || labelColor
 	        });
 	    };
@@ -1934,24 +1981,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	            cb = dataIndex;
 	            dataIndex = null;
 	        }
-	        var animationEnabled = animatableModel
-	            && (
-	                animatableModel.ifEnableAnimation
-	                ? animatableModel.ifEnableAnimation()
-	                // Directly use animation property
-	                : animatableModel.getShallow('animation')
-	            );
+	        // Do not check 'animation' property directly here. Consider this case:
+	        // animation model is an `itemModel`, whose does not have `isAnimationEnabled`
+	        // but its parent model (`seriesModel`) does.
+	        var animationEnabled = animatableModel && animatableModel.isAnimationEnabled();
 
 	        if (animationEnabled) {
 	            var postfix = isUpdate ? 'Update' : '';
-	            var duration = animatableModel
-	                && animatableModel.getShallow('animationDuration' + postfix);
-	            var animationEasing = animatableModel
-	                && animatableModel.getShallow('animationEasing' + postfix);
-	            var animationDelay = animatableModel
-	                && animatableModel.getShallow('animationDelay' + postfix);
+	            var duration = animatableModel.getShallow('animationDuration' + postfix);
+	            var animationEasing = animatableModel.getShallow('animationEasing' + postfix);
+	            var animationDelay = animatableModel.getShallow('animationDelay' + postfix);
 	            if (typeof animationDelay === 'function') {
-	                animationDelay = animationDelay(dataIndex);
+	                animationDelay = animationDelay(
+	                    dataIndex,
+	                    animatableModel.getAnimationDelayParams
+	                        ? animatableModel.getAnimationDelayParams(el, dataIndex)
+	                        : null
+	                );
 	            }
 	            if (typeof duration === 'function') {
 	                duration = duration(dataIndex);
@@ -1966,6 +2012,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            cb && cb();
 	        }
 	    }
+
 	    /**
 	     * Update graphic element properties with or without animation according to the configuration in series
 	     * @param {module:zrender/Element} el
@@ -11841,7 +11888,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 64 */
 /***/ function(module, exports) {
 
-	// Pick color from palette for each data item
+	// Pick color from palette for each data item.
+	// Applicable for charts that require applying color palette
+	// in data level (like pie, funnel, chord).
 
 
 	    module.exports = function (seriesType, ecModel) {
@@ -11857,8 +11906,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    idxMap[rawIdx] = idx;
 	                });
 	                dataAll.each(function (rawIdx) {
-	                    // FIXME Performance
-	                    var itemModel = dataAll.getItemModel(rawIdx);
 	                    var filteredIdx = idxMap[rawIdx];
 
 	                    // If series.itemStyle.normal.color is a function. itemVisual may be encoded
@@ -11866,6 +11913,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        && data.getItemVisual(filteredIdx, 'color', true);
 
 	                    if (!singleDataColor) {
+	                        // FIXME Performance
+	                        var itemModel = dataAll.getItemModel(rawIdx);
 	                        var color = itemModel.get('itemStyle.normal.color')
 	                            || seriesModel.getColorFromPalette(dataAll.getName(rawIdx), paletteScope);
 	                        // Legend may use the visual info in data before processed
