@@ -1,7 +1,7 @@
 var echarts = require('echarts/lib/echarts');
 var numberUtil = echarts.number;
 var symbolUtil = require('echarts/lib/util/symbol');
-var zrUtil = require('echarts/node_modules/zrender/lib/core/util');
+var zrUtil = require('zrender/lib/core/util');
 var parsePercent = numberUtil.parsePercent;
 
 var LiquidLayout = require('./liquidFillLayout');
