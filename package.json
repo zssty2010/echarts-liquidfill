@@ -11,7 +11,7 @@
   "license": "BSD",
   "dependencies": {
     "echarts": "3.6.2",
-    "zrender": "3.3.0"
+    "zrender": "^3.3.0"
   },
   "repository": {
     "type": "git",
